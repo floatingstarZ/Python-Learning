@@ -1,0 +1,21 @@
+1.可以对后端进行设置，更改不同的后端。改变图像的输出。
+
+示例代码：
+import numpy as np
+
+#修改后端
+import matplotlib
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
+
+
+fig, ax = plt.subplots(1,1)
+
+for i in range(5):
+    plt.plot(np.random.rand(10))
+    plt.pause(1)
+    plt.clf()
+plt.show()#用来结尾。
+这样子用起来的感受不一样。使用的是TkAgg后端。
+原先使用的是另外一个，在显示连续图片的时候并不好使，虽然在显示多个图片的时候很好使。

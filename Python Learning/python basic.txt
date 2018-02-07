@@ -1,0 +1,213 @@
+1.函数未执行之前，作用域已经形成了，作用域链也生成了
+2.作用域（Scope）和命名空间（NameSpace）
+
+def/lambda会创建新的作用域，生成器表达式都有引入新的作用域，class的定义没有作用域，只是创建一个隔离的命名空间。在Python中，scope是由namespace按特定的层级结构组合起来的。scope一定是namespace，但namespace不一定是scope。命名空间跟作用域的区别是，它不能在里面再嵌套其他作用域。
+
+NAMESPACE:
+namespace是一个映射，是从名字到对象的一个映射。也等同与一个字典
+比如
+
+a = 1
+def f1():
+	a = 1
+def f2():
+	a = 1
+
+f1()
+f2()
+
+命名空间都是有创建时间和生存期的。
+在上述例子中，a = 1，这在最大的namespace,记为G中添加了了一个 a : 1,所以G = {a : 1}
+f1调用，产生了一个新的namespace,记为F1，并且在调用结束前a = 1在F1中添加了a : 1
+所以F1 = {a : 1}，注意，这里F1与G是两个namespace, 所以其中的 a 实际上是不同的。在函数调用
+结束以后，F1被消除，只剩下了G。
+调用f2的过程同理。
+>>> def f():
+	print(locals())
+	a = 100
+	print(locals())
+	b = 100
+	print(locals())
+
+	
+>>> f()
+{}
+{'a': 100}
+{'a': 100, 'b': 100}
+namespace是可以改变的。
+关于更多：https://www.cnblogs.com/windlaughing/archive/2013/05/26/3100362.html
+http://www.jb51.net/article/73516.htm
+http://blog.csdn.net/lihao21/article/details/79112054
+http://python.jobbole.com/81367/
+
+要记住，namespace本质上就是dict，在程序调用的时候，便创建了很多个不同的namespace，namespace
+随着程序的进行被改变、消灭和在创建。
+那么对于一行代码中出现的名字，如何判断它是属于哪个namespace是一个很重要的问题，这就引入了
+scope(作用域)的概念
+
+Names defined at the class scope are not visible in methods.
+This rule is subtle. Python lacks declarations and allows name binding operations to occur anywhere within a code block. The local variables of a code block can be determined by scanning the entire text of the block for name binding operations.
+
+
+SCOPE:
+引入：http://blog.csdn.net/upnow2014/article/details/45393777
+"所谓名字的scope，指当绑定了一个名字到一个对象的时候，该名字在程序文本中的可见范围。"
+官方文档的解释：
+Names refer to objects. Names are introduced by name binding operations. Each occurrence of a name in the program text refers to the binding of that name established in the innermost function block containing the use.
+
+A block is a piece of Python program text that is executed as a unit. The following are blocks: a module, a function body, and a class definition. Each command typed interactively is a block. A script file (a file given as standard input to the interpreter or specified on the interpreter command line the first argument) is a code block. A script command (a command specified on the interpreter command line with the ‘-c‘ option) is a code block. The string argument passed to the built-in functions eval() and exec() is a code block.
+
+A code block is executed in an execution frame. A frame contains some administrative information (used for debugging) and determines where and how execution continues after the code block’s execution has completed.
+
+A scope defines the visibility of a name within a block. If a local variable is defined in a block, its scope includes that block. If the definition occurs in a function block, the scope extends to any blocks contained within the defining one, unless a contained block introduces a different binding for the name. The scope of names defined in a class block is limited to the class block; it does not extend to the code blocks of methods – this includes comprehensions and generator expressions since they are implemented using a function scope.
+还有另一段关于scope的解释，A scope is a textual region of a Python program where a namespace is directly accessible. “Directly accessible” here means that an unqualified reference to a name attempts to find the name in the namespace.
+
+。下面谈自己的理解。
+https://www.cnblogs.com/livingintruth/p/3296010.html
+http://nbviewer.jupyter.org/github/rasbt/python_reference/blob/master/tutorials/scope_resolution_legb_rule.ipynb
+
+文档的翻译：http://blog.csdn.net/szcf1924/article/details/53417146
+
+命名和绑定
+
+名字的绑定
+
+名字指向对象(objects)。名字通过名字绑定操作被引入。 
+
+名字的解析
+域(scope)定义了块内名字的可见范围(visibility)。一个本地变量(local variable)在一个块内定义，它的域(scope)就包括那个块。如果定义出现在函数块(function block)内,它的域会延伸到该函数块包含的所有块，除非内嵌块中为该名字引入的不同的绑定。 
+一个名字在代码块中出现时会用最近封闭域(the nearest enclosing scope)来解析。所有对代码块可见的这样的域的集合被称为块的环境。 
+当一个名字没被找到的时候NameError异常被提起，在函数块中出现类似的的情况有可能提起UnboundLocalError。UnboundLocalError是NameError的一个子类。
+
+如果一个名字绑定操作出现在一个块内，那么此块内的对该名字的使用都被视为对当前块的引用。这种情况下，名字使用不能出现在绑定操作前。
+
+也就是说scope有两种方法。
+一是scope的创建，这是发生在名字绑定时候，也就是名字被引入的时候，例如说赋值，
+for循环的头部，函数定义，函数的形参，这些在http://blog.csdn.net/szcf1924/article/details/53417146
+里有列举，在名字绑定时，其scope同时被定义，scope就是代表了该名字能够直接被引用的代码范围，
+二是scope的使用，在一个名字被引用的时候，便在所有包含它的scope中寻找是否有名字与该名字相等，
+这个寻找过程，便是下文所述的”LEGB-rule”。
+
+比如：
+1.def f():
+2.   a = 1
+3.   b = 1
+4.   def g():
+5.	c = 1
+6.	print(a)
+7.	a = 2
+
+先说scope的创建：
+第二行a的scope是2~7行，也就是整个f，采用的是namespace F中a : 1的定义。（所以说一个scope是一个字典也可以吧）
+第七行a的scope是5~7行，也就是整个g,采用的是G中的a : 2。
+之后是scope的使用，
+在第六行中引用了a，先在local scope中寻找，第七行a的scope包含了它，成功，但是，这时候a还没有定义，G = {}，有关a的value还没有创建，也就是a还没有绑定，所以报错。
+
+比如：
+1.def f():
+2.   a = 1
+3.   b = 1
+4.   def g():
+5.	c = 1
+6.	a = 2 + a
+
+先说scope的创建：
+第二行a的scope是2~7行,与上一个例子相同。
+第七行a的scope是5~7行，但是，a在名字绑定的时候要先找到其对象，
+在后面2 + a中，首先要知道后面a的对象，这时是scope的部分，先在local scope中寻找，
+找到了第七行的a, 这个时候a还没有绑定，所以出错UnboundLocalError。（这里要做区分，是名字出现了，但是名字没有绑定，而不是名字没有出现）
+
+以上两个例子在说明这个事实：
+如果一个名字绑定操作出现在一个块内，那么此块内的对该名字的使用都被视为对当前块的引用。这种情况下，名字使用不能出现在绑定操作前。
+
+
+
+在一个Python程序运行中，至少有4个scopes是存在的。
+直接访问一个变量可能在这四个namespace中逐一搜索。
+Local(innermost)
+包含局部变量。
+比如一个函数/方法内部。
+Enclosing
+包含了非局部(non-local)也非全局(non-global)的变量。
+比如两个嵌套函数，内层函数可能搜索外层函数的namespace，但该namespace对内层函数而言既非局部也非全局。 
+Global(next-to-last)
+当前脚本的最外层。
+比如当前模块的全局变量。 
+Built-in(outtermost)
+Python __builtin__ 模块。
+包含了内建的变量/关键字等。 
+那么，这么多的作用域，Python是按什么顺序搜索对应作用域的呢？
+
+著名的”LEGB-rule”，即scope的搜索顺序：
+
+Important
+
+Local -> Enclosing -> Global -> Built-in
+
+怎么个意思呢？
+
+当有一个变量在 local 域中找不到时，Python会找上一层的作用域，即 enclosing 域（该域不一定存在）。enclosing 域还找不到的时候，再往上一层，搜索模块内的 global 域。最后，会在 built-in 域中搜索。对于最终没有搜索到时，Python会抛出一个 NameError 异常。
+
+
+以下例子很重要：：：：：：：：：：：：：：：：：：：：：：：
+一些奇怪的例子：http://blog.csdn.net/wentyoon/article/details/53301594
+http://python.jobbole.com/86465/
+记住在函数未执行之前，作用域已经形成了，作用域链也生成了
+举例：
+>>> for i in range(10):
+	def f():
+		return i
+	l.append(f)
+>>>l[0]()
+9
+>>i
+9
+
+>>> for i in range(10):
+	def f():
+		i = i + 1
+	l.append(f)
+>>> l[0]()
+
+UnboundLocalError: local variable 'i' referenced before assignment
+参见名字的绑定：http://blog.csdn.net/szcf1924/article/details/53417146
+在第一个例子中。
+for循环头部绑定了名字i,并且函数中的变量i，其归属的scope为外侧的i(global)的，所以
+输出是9。函数只有在调用的时候，才依照LEGB去寻找归属的scope。
+在第二个例子中。
+i依然是循环的i，在函数中进行了赋值的操作，因此在L中寻找name，引发矛盾，和上面几个例子一样。
+
+举例：
+1.
+name = "global"
+ 
+def f1():
+    print(name)
+ 
+def f2():
+    name = "f2"
+    f1()
+ 
+f2()
+输出：global
+
+2.
+name = "global"
+ 
+def f2():
+    name = "f2"
+    def f1():
+        print(name)
+    f1()
+ 
+f2()
+输出：global
+
+在例一中，调用f2,在调用f1,寻找f1中的name的scope，寻找到'global'，
+在例二中，则是寻找到'f2'。
+
+
+总之，一句话，语句只有在需要引用变量的时候，才去寻找名字对应的对象，这是按照LEGB法则寻找scope来实现的，当然，在函数尚未执行之前，实际上作用域已经形成了，只是在实际执行的时候，才去寻找相应的作用域。作用域是一个抽象的概念（语句的集合）。
+
+详见：
+http://python.jobbole.com/81367/

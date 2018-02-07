@@ -1,0 +1,11 @@
+1.torch.unsqueeze(input, dim)
+在input的第dim维度之前插入一个维度，index为1
+例如：
+x = tc.Tensor(4,4)
+
+y1 = tc.unsqueeze(x, 0)		#y1.size() = 1*4*4
+y1 = tc.unsqueeze(x, 1)		#y1.size() = 4*1*4
+y1 = tc.unsqueeze(x, 2)		#y1.size() = 4*4*1
+
+2.tensor.view(*arg)
+按照arg的维度重新排列Tensor的维度
