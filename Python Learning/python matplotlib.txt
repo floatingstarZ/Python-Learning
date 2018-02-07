@@ -19,3 +19,56 @@ for i in range(5):
 plt.show()#用来结尾。
 这样子用起来的感受不一样。使用的是TkAgg后端。
 原先使用的是另外一个，在显示连续图片的时候并不好使，虽然在显示多个图片的时候很好使。
+关于如何查看后端
+http://www.cnblogs.com/suntp/p/6519386.html
+matplotlib中什么是后端
+在很多网上文档和邮件列表中提到了"后端"，并且很多初学者会对这个术语迷惑。matplotlib把不同使用情形和输出格式作为目标。一些人用matplotlib在python shell上交互，当他们输入命令能够弹出绘图窗口。一些人把matplotlib嵌入到其他的用户图形接口如：wxpython或者pygtk中来编写丰富的应用程序。有些人用matplotlib使用到批处理脚本中，从数字模拟中生成Postscript图片，还有些人用在web应用服务器中来动态生成图。
+
+为了支持所有的使用情形，matplotlib能够产生不同的输出，而把每一个不同输出的能力叫做一个后端。而前端就是用户需要处理的代码，如绘图代码，然后后端做的就是所有看不到的辛苦工作来生成视图窗口。这里有两种不同类型的后端：
+
+1.用户接口后端(又叫做"交互式后端"，如pygtk, wxpython, thinter,qt, macosx或者fltk)。 
+2.硬拷贝后端，也叫做非交互式后端，用来生成图像文件(PNG,SVG,PDF, PS)
+
+主要有两种方式配置你的后端。
+
+1. 在matplotlibrc文件中设置后端参数，请查看 自定义matplotlib 
+backend : WXAgg # 使用wxpython和antigrain(agg)渲染 
+2. 另外一种方式是使用matplotlib的use()命令。 
+import matplotlib
+matplotlib.use('PS') # 默认生成postscript输出。
+如果你使用use命令，必须在import matplotlib.pyplot或者matplotlib.pylab之前设置。
+
+注意： 后端的名字是不区分大小写的，如： “GTKAgg”和“gtkagg”是一样的。
+
+使用常规方式安装matplotlib如二进制安装包或者linux发行包，那么一个好的默认后端已经设置好了，即允许你交互式工作也可以从脚本文件中绘制，可以输出到屏幕也可以输出到文件。所以你也不必去使用上面给出的方法去初始化了。
+
+然而，如果你想要写用户图形接口或者web应用服务器(在web应用服务器中使用Matplotlib)，或者需要更好理解它是怎么进行的，请阅读下去。对于图形化用户接口，为了使事情更加可定制化，matplotlib区分了渲染器(绘图)和绘图面板(显示绘图的地方)的概念。对于用户接口，典型的渲染器是Agg，它是使用Anti-Grain Geometry C++库来产生光栅(像素)图。所有的用户接口除了macosx外，都可以和agg一样来渲染，如WXAgg,GTKAgg,QT4Agg,TKAgg。另外，一些用户接口支持其他的渲染引擎。例如：使用GTK，你可以选择GDK渲染(后端为GTK)， 也可以使用Cairo渲染(后端为GTKCairo)
+
+对于渲染引擎，可以用向量或者光栅渲染器来区别。向量图语言画图命令有点像"从这个点到那个点画条线"，所以是可以任意比例缩放。光栅后端通过每英寸每点的像素来产生线条。
+
+这里对matplotlib渲染器做个总结(没有等级先后次序，都是非交互式的后端，拥有写入到文件中的能力)
+
+ 
+
+  渲染器      	文件类型	描述
+  AGG	png	光栅图 –使用 Anti-Grain Geometry 高质量渲染引擎
+  PS	ps eps	矢量图 – Postscript 输出
+  PDF	pdf	矢量图– 可携带格式
+  SVG	svg	矢量图 – 可伸缩矢量图形
+  Cairo	png ps pdf svg ...	矢量图 – Cairo图
+  GDK	png jpg tiff ...	光栅图 – gimp
+还有一些支持用户接口和渲染器紧密结合的后端，他们是交互式的后端，拥有在屏幕上展示的能力，使用上表中适当的渲染器来写入到文件中。
+
+ 
+
+     后端              	描述
+    GTKAgg	Agg渲染器输出到GTK绘图面板(需要PyGTK)
+       GTK	GDK渲染器输出到GTK绘图面板(不推荐，需要PyGTK)
+    GTKCairo	Cairo渲染器输出到GTK绘图面板(需要PyGTK)
+     WXAgg	Agg渲染器输出到wxWidgets绘图面板（需要wxPython）
+    WX	原生wxWidgets绘图输出到wxWidgets绘图面板(不推荐，需要wxPython)
+    TkAgg	Agg渲染器输出到Tk绘图面板(需要Tkinter)
+    QtAgg	Agg渲染器输出到Qt绘图面板（不推荐，请使用Qt4Agg，需要PyQt）
+    Qt4Agg	Agg渲染器输出到Qt4绘图面板（需要PyQt4）
+    FLTKAgg	Agg渲染器输出到FLTK绘图面板(需要pyFLTK, 使用不是很广，考虑使用TKAgg,GTKAgg,WXAgg,或者QT4Agg替代)
+    macosx	Cocoa渲染器在osx上。（目前在非交互式模式缺少阻塞show()行为）
